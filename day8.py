@@ -55,9 +55,6 @@ def process_instructions(instructions):
 
     for instruction in instructions:
         process_instruction(screen, instruction)
-        #print ""
-        #print instruction
-        #print_screen(screen)        
 
     return screen
 
