@@ -1,25 +1,32 @@
 
 def solve(initial_state, final_state):
-    state_to_num_moves_map = {}
-    solve_recursive(state_to_num_moves_map, initial_state, 0)
-    print len(state_to_num_moves_map)
-    return state_to_num_moves_map[final_state]
+    state_map = {}
+    solve_recursive(state_map, initial_state, [])
+    return state_map[final_state]
 
-def solve_recursive(state_to_num_moves_map, state, num_moves):
-    next_num_moves = num_moves + 1
+def solve_recursive(state_map, state, state_history):
+    next_state_history = state_history + [state]
     for next_state in get_next_states(state):
-        if (next_state not in state_to_num_moves_map) or (state_to_num_moves_map[next_state] > next_num_moves):
-            state_to_num_moves_map[next_state] = next_num_moves
-            solve_recursive(state_to_num_moves_map, next_state, next_num_moves)
+        if (
+            (next_state not in state_map) or 
+            (len(state_map[next_state]) > len(next_state_history))
+        ):
+            state_map[next_state] = state_history
+            solve_recursive(state_map, next_state, next_state_history)
             
 def is_floor_state_ok(floor):
-    microchips = tuple(i for i, v in enumerate(floor) if (i % 2 == 0) and v)
-    generators = tuple(i for i, v in enumerate(floor) if (i % 2 == 1) and v)
+    microchips = tuple(i for i, v in enumerate(floor) if (i % 2 == 1) and v)
+    generators = tuple(i for i, v in enumerate(floor) if (i % 2 == 0) and v)
     for microchip in microchips:
         has_shield = floor[microchip - 1]
         if not has_shield and len(generators) > 0:
             return False
     return True
+
+assert is_floor_state_ok((0, 1, 0, 1))
+assert is_floor_state_ok((1, 0, 1, 0))
+assert is_floor_state_ok((1, 1, 1, 0))
+assert not is_floor_state_ok((1, 1, 0, 1))
 
 def make_floor_state(indices, length):
     return tuple(1 if i in indices else 0 for i in xrange(length))
@@ -82,17 +89,24 @@ final_state = (3, (
     (1, 1, 1, 1)
 ))
 
-print solve(initial_state, final_state)
+history = solve(initial_state, final_state)
+for h in history:
+    print h
+print len(history)
 
 
 #The first floor contains a thulium generator, a thulium-compatible microchip, a plutonium generator, and a strontium generator.
 #The second floor contains a plutonium-compatible microchip and a strontium-compatible microchip.
 #The third floor contains a promethium generator, a promethium-compatible microchip, a ruthenium generator, and a ruthenium-compatible microchip.
 #The fourth floor contains nothing relevant.
-#loor_0 = [(GENERATOR, "TH"), (MICROCHIP, "TH"), (GENERATOR, "PL"), (GENERATOR, "ST")]
-#floor_1 = [(MICROCHIP, "PL"), (MICROCHIP, "ST")]
-#floor_2 = [(GENERATOR, "PR"), (MICROCHIP, "PR"), (GENERATOR, "RU"), (MICROCHIP, "RU")]
-#floor_3 = []
-#print solve([floor_0, floor_1, floor_2, floor_3])
-
-
+# TH , PL , ST , PR , RU
+floor_0 = (1, 1, 1, 0, 1, 0, 0, 0, 0, 0)
+floor_1 = (0, 0, 0, 1, 0, 1, 0, 0, 0, 0)
+floor_2 = (0, 0, 0, 0, 0, 0, 1, 1, 1, 1)
+floor_3 = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+initial_state = (0, (floor_0, floor_1, floor_2, floor_3))
+full_floor = (1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+empty_floor = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+final_state = (3, (empty_floor, empty_floor, empty_floor, full_floor))
+r = solve(initial_state, final_state)
+print len(r)
