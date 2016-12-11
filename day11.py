@@ -1,82 +1,98 @@
-GENERATOR = 'g'
-MICROCHIP = 'm'
 
-def can_exist(items):
-    microchips = [i for i in items if i[0] == MICROCHIP]
-    generators = [i for i in items if i[0] == GENERATOR]
+def solve(initial_state, final_state):
+    state_to_num_moves_map = {}
+    solve_recursive(state_to_num_moves_map, initial_state, 0)
+    print len(state_to_num_moves_map)
+    return state_to_num_moves_map[final_state]
+
+def solve_recursive(state_to_num_moves_map, state, num_moves):
+    next_num_moves = num_moves + 1
+    for next_state in get_next_states(state):
+        if (next_state not in state_to_num_moves_map) or (state_to_num_moves_map[next_state] > next_num_moves):
+            state_to_num_moves_map[next_state] = next_num_moves
+            solve_recursive(state_to_num_moves_map, next_state, next_num_moves)
+            
+def is_floor_state_ok(floor):
+    microchips = tuple(i for i, v in enumerate(floor) if (i % 2 == 0) and v)
+    generators = tuple(i for i, v in enumerate(floor) if (i % 2 == 1) and v)
     for microchip in microchips:
-        has_shield = any(i for i in generators if i[1] == microchip[1])
-        if not has_shield:
-            return len(generators) > 0
+        has_shield = floor[microchip - 1]
+        if not has_shield and len(generators) > 0:
+            return False
     return True
 
-def get_possible_moves(floors, elevator, prev_move):
-    all_combos = []
-    for i, item in enumerate(floors[elevator]):
-        all_combos.append([item])
-        for other_item in floors[elevator][i + 1:]:
-            combo = [item, other_item]
-            if can_exist(combo):
-                all_combos.append(combo)
+def make_floor_state(indices, length):
+    return tuple(1 if i in indices else 0 for i in xrange(length))
 
-    possible_moves = []
-    for combo in all_combos:
-        
-        def add_possible_move_if_valid(delta):
-            next_elevator = elevator + delta
-            if next_elevator >= 0 and next_elevator < len(floors):
-                if can_exist(combo + floors[next_elevator]):
-                    move = (combo, delta)
-                    if not prev_move or move != (prev_move[0], -prev_move[1]):
-                        possible_moves.append(move)
-        
-        add_possible_move_if_valid(-1)
-        add_possible_move_if_valid(+1)
+def attempt_append_next_state(next_states, state, elevator_state, delta):
+    elevator, floors = state
+    next_elevator = elevator + delta
+    if next_elevator < 0 or next_elevator >= len(floors):
+        return
+    next_floor_state = tuple(
+        1 if (elevator_state[i] or floors[next_elevator][i]) else 0 
+        for i in xrange(len(elevator_state))
+    )
+    prev_floor_state = tuple(
+        1 if (not elevator_state[i] and floors[elevator][i]) else 0
+        for i in xrange(len(elevator_state))
+    )
+    if is_floor_state_ok(next_floor_state) and is_floor_state_ok(prev_floor_state):
+        def get_next_floor_state(i, f):
+            if i == elevator:
+                return prev_floor_state
+            elif i == next_elevator:
+                return next_floor_state
+            return f
+        next_floors = tuple(
+            get_next_floor_state(i, f)
+            for i, f in enumerate(floors)
+        )
+        next_states.append((next_elevator, next_floors))
 
-    return possible_moves
+def get_next_states(state):
+    elevator, floors = state
+    current_floor = floors[elevator]
+    assert is_floor_state_ok(current_floor)
+    elevator_states = []
+    for i, iv in enumerate(current_floor):
+        if iv:
+            elevator_states.append(make_floor_state((i, ), len(current_floor)))
+            for j, jv in enumerate(current_floor):
+                if (j > i) and jv:
+                    combo_state = make_floor_state((i, j), len(current_floor))
+                    if is_floor_state_ok(combo_state):
+                        elevator_states.append(combo_state)
+    next_states = []
+    for elevator_state in elevator_states:
+        attempt_append_next_state(next_states, state, elevator_state, -1)
+        attempt_append_next_state(next_states, state, elevator_state, +1)
+    return next_states
 
-def get_move_score(move):
-    items, delta = move
-    has_generator = any(i for i in items if i[0] == GENERATOR)
-    if delta > 0:
-        return (1000 if has_generator else 100) * len(items)
-    else:
-        return (0 if has_generator else 10) * len(items)                
+initial_state = (0, (
+    (0, 1, 0, 1),
+    (1, 0, 0, 0),
+    (0, 0, 1, 0),
+    (0, 0, 0, 0)
+))
+final_state = (3, (
+    (0, 0, 0, 0),
+    (0, 0, 0, 0),
+    (0, 0, 0, 0),
+    (1, 1, 1, 1)
+))
 
-def solve(floors):
-    count = 0
-    elevator = 0
-    total_num_items = sum([len(floor) for floor in floors])
-    prev_move = None
-    while len(floors[len(floors) - 1]) < total_num_items:
-        possible_moves = get_possible_moves(floors, elevator, prev_move)
-        sorted_moves = sorted(possible_moves, key=get_move_score, reverse=True)
-        #print sorted_moves
-        move = sorted_moves[0]
-        print move
-        floors[elevator] = [i for i in floors[elevator] if i not in move[0]]
-        elevator += move[1]
-        floors[elevator] = floors[elevator] + move[0]
-        prev_move = move
-        count += 1
+print solve(initial_state, final_state)
 
-    return count
-
-print solve([
-    [(MICROCHIP, 'H'), (MICROCHIP, 'L')],
-    [(GENERATOR, 'H')],
-    [(GENERATOR, 'L')],
-    []
-])
 
 #The first floor contains a thulium generator, a thulium-compatible microchip, a plutonium generator, and a strontium generator.
 #The second floor contains a plutonium-compatible microchip and a strontium-compatible microchip.
 #The third floor contains a promethium generator, a promethium-compatible microchip, a ruthenium generator, and a ruthenium-compatible microchip.
 #The fourth floor contains nothing relevant.
-floor_0 = [(GENERATOR, "TH"), (MICROCHIP, "TH"), (GENERATOR, "PL"), (GENERATOR, "ST")]
-floor_1 = [(MICROCHIP, "PL"), (MICROCHIP, "ST")]
-floor_2 = [(GENERATOR, "PR"), (MICROCHIP, "PR"), (GENERATOR, "RU"), (MICROCHIP, "RU")]
-floor_3 = []
+#loor_0 = [(GENERATOR, "TH"), (MICROCHIP, "TH"), (GENERATOR, "PL"), (GENERATOR, "ST")]
+#floor_1 = [(MICROCHIP, "PL"), (MICROCHIP, "ST")]
+#floor_2 = [(GENERATOR, "PR"), (MICROCHIP, "PR"), (GENERATOR, "RU"), (MICROCHIP, "RU")]
+#floor_3 = []
 #print solve([floor_0, floor_1, floor_2, floor_3])
 
 
