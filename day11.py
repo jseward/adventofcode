@@ -1,26 +1,44 @@
+from collections import defaultdict
+
+PROGRESS_MOD = 10000
+
+def get_shortest_path(graph, initial_state, final_state):
+    print "get_shorted_path. graph={}".format(len(graph))
+    # https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
+    dist = {}
+    dist[initial_state] = 0
+    q = graph.keys()
+    while q:
+        u = min((x for x in q if x in dist), key=lambda x: dist[x])
+        q.remove(u)
+        if len(q) % PROGRESS_MOD == 0:
+            print "graph {}".format(len(q))
+        for v in graph[u]:
+            new_dist = dist[u] + 1
+            if (v not in dist) or (new_dist < dist[v]):
+                dist[v] = new_dist
+    return dist[final_state]
 
 def solve(initial_state, final_state):
-    history_map = {}
-    history_map[initial_state] = []
+    graph = defaultdict(list)
     unchecked_states = [initial_state]
+    checked_states = {initial_state: True}
     loop = 0
     while unchecked_states:
         loop += 1
-        if loop % 10000 == 0:
+        if loop % PROGRESS_MOD == 0:
             print "loop {}".format(loop)
 
         unchecked_state = unchecked_states.pop(0)
         next_states = get_next_states(unchecked_state)
-        next_history = history_map[unchecked_state] + [unchecked_state]
+        assert not unchecked_state in graph
+        graph[unchecked_state] = next_states
         for next_state in next_states:
-            if (
-                (next_state not in history_map) or 
-                (len(history_map[next_state]) > len(next_history))
-            ):
-                history_map[next_state] = next_history
+            if not next_state in checked_states:
+                checked_states[next_state] = True
                 unchecked_states.append(next_state)
-    
-    return history_map[final_state]
+
+    return get_shortest_path(graph, initial_state, final_state)
    
 def is_floor_state_ok(floor):
     microchips = tuple(i for i, v in enumerate(floor) if (i % 2 == 1) and v)
@@ -84,24 +102,22 @@ def get_next_states(state):
         attempt_append_next_state(next_states, state, elevator_state, +1)
     return next_states
 
-initial_state = (0, (
-    (0, 1, 0, 1),
-    (1, 0, 0, 0),
-    (0, 0, 1, 0),
-    (0, 0, 0, 0)
-))
-final_state = (3, (
-    (0, 0, 0, 0),
-    (0, 0, 0, 0),
-    (0, 0, 0, 0),
-    (1, 1, 1, 1)
-))
+def example():
+    initial_state = (0, (
+        (0, 1, 0, 1),
+        (1, 0, 0, 0),
+        (0, 0, 1, 0),
+        (0, 0, 0, 0)
+    ))
+    final_state = (3, (
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 1, 1, 1)
+    ))
 
-history = solve(initial_state, final_state)
-for h in history:
-    print h
-print len(history)
-
+    shortest_path = solve(initial_state, final_state)
+    print shortest_path
 
 def part_one():
     #The first floor contains a thulium generator, a thulium-compatible microchip, a plutonium generator, and a strontium generator.
@@ -132,4 +148,6 @@ def part_two():
     r = solve(initial_state, final_state)
     print len(r)
 
-part_two()
+#example()
+part_one()
+#part_two()
