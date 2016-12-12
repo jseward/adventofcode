@@ -1,19 +1,27 @@
 
 def solve(initial_state, final_state):
-    state_map = {}
-    solve_recursive(state_map, initial_state, [])
-    return state_map[final_state]
+    history_map = {}
+    history_map[initial_state] = []
+    unchecked_states = [initial_state]
+    loop = 0
+    while unchecked_states:
+        loop += 1
+        if loop % 10000 == 0:
+            print "loop {}".format(loop)
 
-def solve_recursive(state_map, state, state_history):
-    next_state_history = state_history + [state]
-    for next_state in get_next_states(state):
-        if (
-            (next_state not in state_map) or 
-            (len(state_map[next_state]) > len(next_state_history))
-        ):
-            state_map[next_state] = state_history
-            solve_recursive(state_map, next_state, next_state_history)
-            
+        unchecked_state = unchecked_states.pop(0)
+        next_states = get_next_states(unchecked_state)
+        next_history = history_map[unchecked_state] + [unchecked_state]
+        for next_state in next_states:
+            if (
+                (next_state not in history_map) or 
+                (len(history_map[next_state]) > len(next_history))
+            ):
+                history_map[next_state] = next_history
+                unchecked_states.append(next_state)
+    
+    return history_map[final_state]
+   
 def is_floor_state_ok(floor):
     microchips = tuple(i for i, v in enumerate(floor) if (i % 2 == 1) and v)
     generators = tuple(i for i, v in enumerate(floor) if (i % 2 == 0) and v)
@@ -95,18 +103,33 @@ for h in history:
 print len(history)
 
 
-#The first floor contains a thulium generator, a thulium-compatible microchip, a plutonium generator, and a strontium generator.
-#The second floor contains a plutonium-compatible microchip and a strontium-compatible microchip.
-#The third floor contains a promethium generator, a promethium-compatible microchip, a ruthenium generator, and a ruthenium-compatible microchip.
-#The fourth floor contains nothing relevant.
-# TH , PL , ST , PR , RU
-floor_0 = (1, 1, 1, 0, 1, 0, 0, 0, 0, 0)
-floor_1 = (0, 0, 0, 1, 0, 1, 0, 0, 0, 0)
-floor_2 = (0, 0, 0, 0, 0, 0, 1, 1, 1, 1)
-floor_3 = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-initial_state = (0, (floor_0, floor_1, floor_2, floor_3))
-full_floor = (1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
-empty_floor = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-final_state = (3, (empty_floor, empty_floor, empty_floor, full_floor))
-r = solve(initial_state, final_state)
-print len(r)
+def part_one():
+    #The first floor contains a thulium generator, a thulium-compatible microchip, a plutonium generator, and a strontium generator.
+    #The second floor contains a plutonium-compatible microchip and a strontium-compatible microchip.
+    #The third floor contains a promethium generator, a promethium-compatible microchip, a ruthenium generator, and a ruthenium-compatible microchip.
+    #The fourth floor contains nothing relevant.
+    # TH , PL , ST , PR , RU
+    floor_0 = (1, 1, 1, 0, 1, 0, 0, 0, 0, 0)
+    floor_1 = (0, 0, 0, 1, 0, 1, 0, 0, 0, 0)
+    floor_2 = (0, 0, 0, 0, 0, 0, 1, 1, 1, 1)
+    floor_3 = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    initial_state = (0, (floor_0, floor_1, floor_2, floor_3))
+    full_floor = (1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+    empty_floor = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    final_state = (3, (empty_floor, empty_floor, empty_floor, full_floor))
+    r = solve(initial_state, final_state)
+    print len(r)
+
+def part_two():
+    floor_0 = (1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    floor_1 = (0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0)
+    floor_2 = (0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0)
+    floor_3 = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1)
+    initial_state = (0, (floor_0, floor_1, floor_2, floor_3))
+    full_floor = (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+    empty_floor = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    final_state = (3, (empty_floor, empty_floor, empty_floor, full_floor))
+    r = solve(initial_state, final_state)
+    print len(r)
+
+part_two()
