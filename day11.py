@@ -2,43 +2,31 @@ from collections import defaultdict
 
 PROGRESS_MOD = 10000
 
-def get_shortest_path(graph, initial_state, final_state):
-    print "get_shorted_path. graph={}".format(len(graph))
-    # https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
-    dist = {}
-    dist[initial_state] = 0
-    q = graph.keys()
-    while q:
-        u = min((x for x in q if x in dist), key=lambda x: dist[x])
-        q.remove(u)
-        if len(q) % PROGRESS_MOD == 0:
-            print "graph {}".format(len(q))
-        for v in graph[u]:
-            new_dist = dist[u] + 1
-            if (v not in dist) or (new_dist < dist[v]):
-                dist[v] = new_dist
-    return dist[final_state]
-
 def solve(initial_state, final_state):
-    graph = defaultdict(list)
-    unchecked_states = [initial_state]
-    checked_states = {initial_state: True}
+    prev = {initial_state: None}
+    dist = {initial_state: 0}
+    stack = [initial_state]
     loop = 0
-    while unchecked_states:
+    while stack:
         loop += 1
         if loop % PROGRESS_MOD == 0:
             print "loop {}".format(loop)
 
-        unchecked_state = unchecked_states.pop(0)
-        next_states = get_next_states(unchecked_state)
-        assert not unchecked_state in graph
-        graph[unchecked_state] = next_states
-        for next_state in next_states:
-            if not next_state in checked_states:
-                checked_states[next_state] = True
-                unchecked_states.append(next_state)
+        s = stack.pop(0)
+        ns = get_next_states(s)
+        nd = dist[s] + 1
+        for n in ns:
+            if (n not in dist) or (dist[n] > nd):
+                dist[n] = nd
+                prev[n] = s
+                stack.append(n)
 
-    return get_shortest_path(graph, initial_state, final_state)
+    num_moves = 0
+    i = final_state
+    while i != initial_state:
+        i = prev[i]
+        num_moves += 1
+    return num_moves  
    
 def is_floor_state_ok(floor):
     microchips = tuple(i for i, v in enumerate(floor) if (i % 2 == 1) and v)
@@ -134,7 +122,7 @@ def part_one():
     empty_floor = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     final_state = (3, (empty_floor, empty_floor, empty_floor, full_floor))
     r = solve(initial_state, final_state)
-    print len(r)
+    print r
 
 def part_two():
     floor_0 = (1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -146,8 +134,8 @@ def part_two():
     empty_floor = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     final_state = (3, (empty_floor, empty_floor, empty_floor, full_floor))
     r = solve(initial_state, final_state)
-    print len(r)
+    print r
 
 #example()
-part_one()
-#part_two()
+#part_one()
+part_two()
