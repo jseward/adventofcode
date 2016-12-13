@@ -11,6 +11,8 @@ def print_maze(magic, width, height):
     for y in xrange(height):
         print "".join("#" if is_wall(magic, x, y) else "." for x in xrange(width))
 
+#print_maze(1364, 32, 40)
+
 def get_neighbours(magic, curr_pos):
     x, y = curr_pos
     neighbours = [] 
@@ -22,28 +24,35 @@ def get_neighbours(magic, curr_pos):
     return neighbours
 
 def get_shortest_path(magic, begin, end):
-    prev = {begin:None}
     dist = {begin:0}
     stack = [begin]
-    while end not in prev:
+    while end not in dist:
         curr_pos = stack.pop(0)
         neighbours = get_neighbours(magic, curr_pos)
         n_dist = dist[curr_pos] + 1
         for n in neighbours:
-            if n not in prev:
-                prev[n] = curr_pos
+            if (n not in dist) or (n_dist < dist[n]):
                 dist[n] = n_dist
                 stack.append(n)
-            else:
-                if n_dist < dist[n]:                    
-                    prev[n] = curr_pos
-                    dist[n] = n_dist
-                    stack.append(n)
                 
     return dist[end]
-
-#print_maze(1364, 32, 40)
 
 print get_shortest_path(10, (1, 1), (7, 4))
 print get_shortest_path(1364, (1, 1), (31, 39))
 
+def get_num_locations(magic, begin, max_dist):
+    dist = {begin:0}
+    stack = [begin]
+    while stack:
+        curr_pos = stack.pop(0)
+        neighbours = get_neighbours(magic, curr_pos)
+        n_dist = dist[curr_pos] + 1
+        if n_dist <= max_dist:
+            for n in neighbours:
+                if (n not in dist) or (n_dist < dist[n]):
+                    dist[n] = n_dist
+                    stack.append(n)
+            
+    return len(dist)
+
+print get_num_locations(1364, (1, 1), 50)
