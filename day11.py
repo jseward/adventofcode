@@ -4,7 +4,6 @@ PROGRESS_MOD = 10000
 
 def solve(initial_state, final_state):
     prev = {initial_state: None}
-    dist = {initial_state: 0}
     stack = [initial_state]
     loop = 0
     while stack:
@@ -14,12 +13,12 @@ def solve(initial_state, final_state):
 
         s = stack.pop(0)
         ns = get_next_states(s)
-        nd = dist[s] + 1
         for n in ns:
-            if (n not in dist) or (dist[n] > nd):
-                dist[n] = nd
+            if n not in prev:
                 prev[n] = s
                 stack.append(n)
+                if n == final_state:
+                    stack = []
 
     num_moves = 0
     i = final_state
@@ -137,5 +136,5 @@ def part_two():
     print r
 
 #example()
-#part_one()
-part_two()
+part_one()
+#part_two()
