@@ -3,30 +3,27 @@ from collections import defaultdict
 PROGRESS_MOD = 10000
 
 def solve(initial_state, final_state):
-    prev = {initial_state: None}
-    stack = [initial_state]
+    current = [initial_state]
+    visited = {}
     loop = 0
-    while stack:
+    while current:
+        print "loop = {}".format(loop)
         loop += 1
-        if loop % PROGRESS_MOD == 0:
-            print "loop {}".format(loop)
 
-        s = stack.pop(0)
-        ns = get_next_states(s)
-        for n in ns:
-            if n not in prev:
-                prev[n] = s
-                stack.append(n)
-                if n == final_state:
-                    stack = []
+        next = []
+        for c in current:
+            for n in get_next_states(c):
+                if (n not in current) and (n not in visited):
+                     next.append(n)
+            visited[n] = True
+        if final_state in visited:
+            print "DONE"
+            current = []
+        else:
+            current = next
+        
+    return 0
 
-    num_moves = 0
-    i = final_state
-    while i != initial_state:
-        i = prev[i]
-        num_moves += 1
-    return num_moves  
-   
 def is_floor_state_ok(floor):
     microchips = tuple(i for i, v in enumerate(floor) if (i % 2 == 1) and v)
     generators = tuple(i for i, v in enumerate(floor) if (i % 2 == 0) and v)
