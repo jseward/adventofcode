@@ -16,24 +16,25 @@ def fill_data(data, size):
 def checksum_char_iter(data):
     i = 0
     while i <= (len(data) - 2):
-        a = data[i:i+1]
-        b = data[i+1:i+2]
-        yield '1' if a == b else '0'
+        yield '1' if data[i] == data[i+1] else '0'
+        i += 2
 
 def make_checksum_once(data):
-    checksum = ''.join(checksum_char_iter(data))
-    return checksum
+    return [c for c in checksum_char_iter(data)]
 
 def make_checksum(data):
-    checksum = data
+    checksum = [c for c in data]
     while True:
         checksum = make_checksum_once(checksum)
         if len(checksum) % 2 == 1:
-            return checksum
+            return ''.join(checksum)
 
 assert make_checksum('110010110100') == '100'
 
+data = fill_data('10010000000110000', 272)
+checksum = make_checksum(data[0:272])
+print checksum
+
 data = fill_data('10010000000110000', 35651584)
 checksum = make_checksum(data[0:35651584])
-
 print checksum
