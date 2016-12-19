@@ -1,38 +1,5 @@
 from collections import deque
 
-
-def inc_elf(elf, num_elves):
-    inc_elf = elf + 1
-    if inc_elf >= num_elves:
-        inc_elf = 0
-    return inc_elf
-
-def get_next_elf_with_presents(have_presents, curr_elf):
-    next_elf = inc_elf(curr_elf, len(have_presents))
-    while next_elf != curr_elf:
-        if have_presents[next_elf]:
-            return next_elf
-        next_elf = inc_elf(next_elf, len(have_presents))
-    return None
-
-def which_elf_old(num_elves):
-    have_presents = [True for i in xrange(num_elves)]
-    curr_elf = 0
-    last_elf = None
-    while curr_elf != None:
-        #print "curr_elf = {}".format(curr_elf + 1)
-        next_elf = get_next_elf_with_presents(have_presents, curr_elf)
-        #print "{} taking from {}".format(curr_elf + 1, next_elf + 1)
-        have_presents[next_elf] = False
-        last_elf = curr_elf
-
-        curr_elf = get_next_elf_with_presents(have_presents, curr_elf)
-
-    return last_elf + 1
-
-#print which_elf_2(5)
-#print which_elf_2(3004953)
-
 def which_elf_1(num_elves):
     have_presents = deque((i + 1) for i in xrange(num_elves))
     while len(have_presents) > 1:
@@ -45,6 +12,8 @@ def which_elf_1(num_elves):
 #print which_elf_1(3004953)
 
 def balance(hp0, hp1):
+    # balance the two groups of elves so
+    # that the end of hp0 is who to steal from.
     total = len(hp0) + len(hp1)
     n = 2 if total % 2 == 0 else 1
     while len(hp0) - n != len(hp1):
@@ -59,9 +28,6 @@ def which_elf_2(num_elves):
         hp1.append(hp0.popleft())
         hp0.pop()
         balance(hp0, hp1)
-
-    print hp0
-    print hp1
 
     return hp0.popleft()
 
